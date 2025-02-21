@@ -1,0 +1,13 @@
+numpy
+torch
+torchvision
+pillow
+tqdm
+matplotlib
+tdw
+ftfy
+regex
+sentence_transformers
+num2words
+clip @ git+https://github.com/openai/CLIP.git
+datasets
