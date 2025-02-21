@@ -1,0 +1,3 @@
+style_transfer_experiments/adain/decoder.pth
+style_transfer_experiments/adain/vgg_normalised.pth
+style_transfer_experiments/adain/__pycache__
