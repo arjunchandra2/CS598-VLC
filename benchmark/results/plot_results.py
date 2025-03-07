@@ -13,7 +13,7 @@ if __name__ == "__main__":
     data["acc_baseline"] = .5
     data.loc[(data["data"] == "aro_coco"), 'acc_baseline'] = .2
     data.loc[(data["data"] == "aro_flickr"), 'acc_baseline'] = .2
-    data["Accuracy Lift"] = data["acc_uni"] - data["acc_baseline"]
+    data["Accuracy Lift"] = data["acc_multi"] - data["acc_baseline"]
 
 
 
@@ -45,4 +45,4 @@ if __name__ == "__main__":
 
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
 
-    plt.savefig("./results/benchmark.pdf", bbox_inches='tight')
+    plt.savefig("./results/benchmark.png", bbox_inches='tight')
