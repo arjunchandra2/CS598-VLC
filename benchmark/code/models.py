@@ -1,5 +1,6 @@
 import torch
 from libs.DAC.src.open_clip import create_model_and_transforms, tokenize
+from open_clip import create_model_from_pretrained, get_tokenizer
 
 def get_DAC_SAM(device):
 
@@ -27,11 +28,31 @@ def get_DAC_SAM(device):
     ):
         sd = {k[len("module.") :]: v for k, v in sd.items()}
     model.load_state_dict(sd)
+    model.eval()
 
-    return model, preprocess_train, tokenize
+    def model_forward(images, text):
+        image_features, text_features, logit_scale = model(images, text)
+        return image_features, text_features
+
+    return model_forward, preprocess_train, tokenize
+
+def get_ViT(device):
+    model, preprocess = create_model_from_pretrained('hf-hub:timm/ViT-L-16-SigLIP-256')
+    tokenizer = get_tokenizer('hf-hub:timm/ViT-L-16-SigLIP-256')
+    tokenizer_forward = lambda x: tokenizer(x, context_length=model.context_length)
+    model.to(device)
+    model.eval()
+    def model_forward(images, text):
+        image_features = model.encode_image(images)
+        text_features = model.encode_text(text)
+        image_features = torch.nn.functional.normalize(image_features, dim=-1)
+        text_features = torch.nn.functional.normalize(text_features, dim=-1)
+        return image_features, text_features
+    return model_forward, preprocess, tokenizer_forward
 
 MODELS = {
     "DAC-SAM": get_DAC_SAM,
+    "ViT": get_ViT,
 }
 
 def get_model(name, device):
