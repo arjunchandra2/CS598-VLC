@@ -14,7 +14,7 @@ import adain.utils as adain_utils
 # from src.utils.data import HMDB51_VIDEO_MAPPING_PATH
 
 BATCH_SIZE = 512
-SAVE_DIR = "/projectnb/cs598/students/ac25/CS598-VLC/style_transfer_experiments/syvic_adain/"
+SAVE_DIR = "/projectnb/cs598/students/ac25/CS598-VLC/style_transfer_experiments/adain_kolors/"
 # IMG_TO_ADAIN_MAPPING_PATH = "resources/syvic_img_to_adain_mapping.json"
 # IMG_CAPTION_MAPPING_PATH = "resources/syvic_img_caption_mapping.json"
 os.makedirs(SAVE_DIR, exist_ok=True)
@@ -26,10 +26,10 @@ orig_to_adain_mapping = {}
 def handle_batch(adain, batch_paths: List[str]):
     global image_counter, orig_to_adain_mapping
 
-    hmdb51_paths = sorted(glob.glob("/projectnb/cs598/students/ac25/CS598-VLC/style_transfer_experiments/hmdb51_sample_1/*"))
+    style_paths = sorted(glob.glob("/projectnb/cs598/students/ac25/CS598-VLC/style_transfer_experiments/kolors ip/*"))
 
-    style_path = np.random.choice(hmdb51_paths)
-    out = adain.transfer_paths(batch_paths, style_path, alpha=0.25)
+    style_path = np.random.choice(style_paths)
+    out = adain.transfer_paths(batch_paths, style_path, alpha=0.01)
     for i in range(len(batch_paths)):
         extension = batch_paths[i].split(".")[-1]
         out_path = os.path.join(SAVE_DIR, "%06d.%s" % (image_counter, extension))
@@ -45,7 +45,7 @@ def main(seed: int):
     adain_utils.seed_everything(seed)
 
     # only running on appendix images (they will be resized in a transform)
-    content_paths = sorted(glob.glob("/projectnb/cs598/students/ac25/CS598-VLC/style_transfer_experiments/images_appendix/*")) 
+    content_paths = sorted(glob.glob("/projectnb/cs598/students/ac25/CS598-VLC/appendix_cont/*")) 
 
     adain = adain_utils.AdaIN()
     batch_paths = []
