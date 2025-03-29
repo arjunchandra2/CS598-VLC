@@ -69,8 +69,8 @@ if __name__ == "__main__":
     # loop over models and data
     metrics = list()
     iterator = tqdm(product(models, data), total=len(models)*len(data))
-    for (model_name, model, prep_image, prep_text), (data_name, category, dataset) in iterator:
-
+    for (model_name, model, prep_image, prep_image_val, prep_text), (data_name, category, dataset) in iterator:
+        
         # update data preprocessing for model
         dataset.update_prep(prep_image, prep_text)
 
