@@ -12,6 +12,7 @@ from .models import get_model
 
 device = torch.device("cuda")
 
+#Images and text are from What's Up Subset A
 def get_image_path(prep, object_s):
     data_path = "/projectnb/cs598/students/ac25/What's Up/data/controlled_images/"
 
