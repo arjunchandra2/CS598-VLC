@@ -4,3 +4,5 @@ style_transfer_experiments/adain/__pycache__
 benchmark/data
 benchmark/checkpoints
 **/__pycache__/
+negative_captions_unused/
+finetuning/clipora/.clipora_env
