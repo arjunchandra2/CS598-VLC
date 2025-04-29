@@ -1,0 +1,42 @@
+#Should be the same model as DAC-SAM
+model_name: "ViT-B-32"
+pretrained: "openai"
+compile: False
+seed: 1337
+vision_heads: 12 #from clip paper appendix (used to inject lora)
+
+device: "cuda"
+workers: 12
+output_dir: "./output_r4_a8"
+
+wandb: True
+wandb_project: cs598-clip-lora
+
+train_dataset: "/projectnb/cs598/projects/comp_reason/CS598-VLC/finetune/data/train.csv"
+eval_dataset: "/projectnb/cs598/projects/comp_reason/CS598-VLC/finetune/data/val.csv"
+datatype: "csv"
+csv_separator: ","
+image_col: "image_path"
+pos_col: "positive_caption"
+neg_col: "negative_caption"
+shuffle: True
+
+#Lora rank in DAC-SAM repo is 4 (not sure if this is default or what they actually report numbers for)
+lora_rank: 4
+lora_alpha: 8
+lora_dropout: 0.0
+
+batch_size: 32
+gradient_accumulation_steps: 1
+gradient_checkpointing: False
+
+use_8bit_adam: False
+
+#for our 1.7M openimages dataset each epoch is ~55k steps
+learning_rate: 5e-4
+epochs: 3
+warmup: 0.01
+save_interval: 20000
+eval_interval: 10000
+eval_steps: 100        #eval on 100 random batches from validation set
+
