@@ -6,3 +6,6 @@ benchmark/checkpoints
 **/__pycache__/
 negative_captions_unused/
 finetuning/clipora/.clipora_env
+benchmark/.peft_env
+finetuning/clipora/output_r4_a8
+finetuning/clipora/wandb
