@@ -1,6 +1,53 @@
 import torch
 from libs.DAC.src.open_clip import create_model_and_transforms, tokenize
-from open_clip import create_model_from_pretrained, get_tokenizer
+from libs.clipora.clipora.lora.inject import inject_linear_attention
+from libs.clipora.clipora.lora.attention import InjectedMultiHeadAttention
+from open_clip import create_model_from_pretrained, get_tokenizer, get_model_config
+from peft import PeftModel, LoraConfig, get_peft_model
+
+
+def get_ft_model(device):
+    CHECKPOINT_PATH = "/projectnb/cs598/students/ac25/CS598-VLC/finetuning/clipora/output_r4_a8/checkpoint_val_150000"
+
+    model, preprocess_train, preprocess_val = create_model_and_transforms(
+        "ViT-B-32",
+        "openai",
+        precision="amp",
+        device=device,
+        jit=False,
+        force_quick_gelu=False,
+        image_mean=None,
+        image_std=None,
+    )
+
+    model_config = get_model_config("ViT-B-32")
+
+    model = inject_linear_attention(
+        model=model,
+        encoders={"transformer"},
+        embed_dim=model_config["embed_dim"],
+        num_heads=model_config["text_cfg"]["heads"],
+    )
+
+    model = inject_linear_attention(
+        model=model,
+        encoders={"visual.transformer"},
+        embed_dim=model_config["vision_cfg"]["width"],
+        num_heads=12,
+    )
+
+    # Load LoRA-wrapped model + weights
+    model = PeftModel.from_pretrained(model, CHECKPOINT_PATH)
+    model.to(device)
+    model.eval()
+
+    def model_forward(images, text):
+        image_features, text_features, logit_scale = model(images, text)
+        return image_features, text_features
+
+    return model_forward, preprocess_train, preprocess_val, tokenize
+
+
 
 def get_DAC_SAM(device):
 
@@ -97,10 +144,11 @@ def get_ViT(device):
     return model_forward, preprocess, preprocess, tokenizer_forward
 
 MODELS = {
+    "Fine-tuned": get_ft_model,
     "DAC-SAM": get_DAC_SAM,
     "DAC-SAM-base": get_DAC_SAM_base,
     "DAC-SAM-base-2": get_DAC_SAM_base_2,
-    "ViT": get_ViT,
+    "ViT": get_ViT
 }
 
 def get_model(name, device):
