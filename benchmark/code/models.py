@@ -4,6 +4,7 @@ from libs.clipora.clipora.lora.inject import inject_linear_attention
 from libs.clipora.clipora.lora.attention import InjectedMultiHeadAttention
 from open_clip import create_model_from_pretrained, get_tokenizer, get_model_config
 from peft import PeftModel, LoraConfig, get_peft_model
+from transformers import BlipProcessor, BlipForImageTextRetrieval, BlipModel, BlipConfig
 
 
 def get_ft_model(device):
@@ -47,6 +48,43 @@ def get_ft_model(device):
 
     return model_forward, preprocess_train, preprocess_val, tokenize
 
+
+def get_BLIP_ITM(device):
+    processor = BlipProcessor.from_pretrained("Salesforce/blip-itm-base-coco")
+
+    # Initialize model with modified config
+    model = BlipForImageTextRetrieval.from_pretrained(
+        "Salesforce/blip-itm-base-coco",
+        torch_dtype=torch.float16
+    )
+    model.to(device)
+    model.eval()
+
+    def preprocess(image):
+        return image.convert("RGB")
+
+    def tokenizer(caption):
+        return caption  # processor handles actual tokenization
+
+     # Forward method to extract image and text features
+    def model_forward(images, captions):
+        inputs = processor(images=images, text=captions, return_tensors="pt", padding=True, truncation=True).to(device, torch.float16)
+        tokenizer = processor.tokenizer
+   
+        with torch.no_grad():
+            # Get image embeddings
+            image_outputs = model.vision_model(pixel_values=inputs["pixel_values"])
+
+            image_embeds = image_outputs.pooler_output  # [CLS] token
+
+            # Get text embeddings
+            text_outputs = model.text_encoder(input_ids=inputs["input_ids"],
+                                            attention_mask=inputs["attention_mask"])
+            text_embeds = text_outputs.last_hidden_state[:, 0, :]  # [CLS] token
+
+        return image_embeds, text_embeds
+
+    return model_forward, preprocess, preprocess, tokenizer
 
 
 def get_DAC_SAM(device):
@@ -148,7 +186,8 @@ MODELS = {
     "DAC-SAM": get_DAC_SAM,
     "DAC-SAM-base": get_DAC_SAM_base,
     "DAC-SAM-base-2": get_DAC_SAM_base_2,
-    "ViT": get_ViT
+    "ViT": get_ViT,
+    "BLIP": get_BLIP_ITM
 }
 
 def get_model(name, device):
